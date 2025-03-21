@@ -115,6 +115,7 @@ a:focus {
   z-index: -1;
 }
 
+
 .hero_area .hero_bg_box .bg_img_box {
   min-width: 100%;
   min-height: 100%;
@@ -174,6 +175,8 @@ a:focus {
 .custom_nav-container .navbar-nav .nav-item.active .nav-link {
   font-weight: 600;
 }
+
+
 
 .custom_nav-container .nav_search-btn {
   width: 35px;
@@ -1131,6 +1134,58 @@ a:focus {
   }
 }
 
+/* Account Settings Section */
+.account-settings-container {
+    max-width: 800px;
+    margin: 50px auto;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+}
+
+.account-settings-container h3 {
+    color: #333;
+}
+
+.account-settings-container form {
+    margin-bottom: 20px;
+}
+
+.account-settings-container label {
+    font-weight: bold;
+}
+
+.account-settings-container input[type="password"], 
+.account-settings-container input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+.account-settings-container button {
+    background-color: #00bbf0;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+}
+
+.account-settings-container button:hover {
+    background-color: #007fa4;
+}
+
+.account-settings-container .delete-btn {
+    background-color: red;
+    color: white;
+}
+
+.account-settings-container .delete-btn:hover {
+    background-color: darkred;
+}
 
 /* footer section*/
 .footer_section {
@@ -1407,6 +1462,60 @@ a:focus {
     padding: 12px;
   }
 }
+
+/* Account Settings Section */
+.account-settings-container {
+  max-width: 800px;
+  margin: 50px auto;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.account-settings-container h3 {
+  color: #333;
+}
+
+.account-settings-container form {
+  margin-bottom: 20px;
+}
+
+.account-settings-container label {
+  font-weight: bold;
+}
+
+.account-settings-container input[type="password"], 
+.account-settings-container input[type="text"] {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+}
+
+.account-settings-container button {
+  background-color: #00bbf0;
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+}
+
+.account-settings-container button:hover {
+  background-color: #007fa4;
+}
+
+.account-settings-container .delete-btn {
+  background-color: red;
+  color: white;
+}
+
+.account-settings-container .delete-btn:hover {
+  background-color: darkred;
+}
+
 
 
 

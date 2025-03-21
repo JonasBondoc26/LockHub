@@ -62,20 +62,21 @@
 
     // Update password
     if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_password'])) {
-        if (!isset($_POST['id']) || !isset($_POST['new_password'])) {
+        if (!isset($_POST['id']) || !isset($_POST['new_password']) || !isset($_POST['new_username'])) {
             echo "<p style='color:red;'>Error: Missing input fields.</p>";
             exit();
         }
     
         $id = $_POST['id'];
         $new_password = $_POST['new_password'];
+        $new_username = $_POST['new_username'];
     
-        if (empty($id) || empty($new_password)) {
-            echo "<p style='color:red;'>Error: ID or Password is empty.</p>";
+        if (empty($id) || empty($new_password) || empty($new_username)) {
+            echo "<p style='color:red;'>Error: ID, username or password is empty.</p>";
         } else {
-            $sql = "UPDATE passwords SET password = ? WHERE id = ?";
+            $sql = "UPDATE passwords SET password = ?, username = ? WHERE id = ?";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("si", $new_password, $id);
+            $stmt->bind_param("ssi", $new_password, $new_username, $id);
     
             if ($stmt->execute()) {
                 echo "<script>setTimeout(() => { window.location.href = 'home.php'; }, 10);</script>";
@@ -85,6 +86,7 @@
             }
         }
     }
+
 
     // Delete password
     if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_password'])) {
@@ -110,40 +112,51 @@
     // Fetch stored passwords for display
     $sql = "SELECT * FROM passwords WHERE user_id = '" . $_SESSION['id'] . "'";
     $result = mysqli_query($conn, $sql);
+
+    if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_account_password'])) {
+        $current_password = $_POST['current_password'];
+        $new_password = $_POST['new_password'];
+    
+        // Fetch the current password from the database
+        $sql = "SELECT password FROM users WHERE id = '" . $_SESSION['id'] . "'";
+        $result = mysqli_query($conn, $sql);
+        $user = mysqli_fetch_assoc($result);
+    
+        if (password_verify($current_password, $user['password'])) {
+            // If current password matches, update to the new password
+            $hashed_new_password = password_hash($new_password, PASSWORD_DEFAULT);
+            $update_sql = "UPDATE users SET password = ? WHERE id = ?";
+            $stmt = $conn->prepare($update_sql);
+            $stmt->bind_param("si", $hashed_new_password, $_SESSION['id']);
+            
+            if ($stmt->execute()) {
+                echo "<p>Password updated successfully!</p>";
+            } else {
+                echo "<p style='color:red;'>Error updating password: " . $stmt->error . "</p>";
+            }
+        } else {
+            echo "<p style='color:red;'>Current password is incorrect.</p>";
+        }
+    }
 ?>
 
 <!DOCTYPE html>
 <html>
 
 <head>
-  <!-- Basic -->
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <!-- Mobile Metas -->
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-  <!-- Site Metas -->
   <meta name="keywords" content="" />
   <meta name="description" content="" />
   <meta name="author" content="" />
   <link rel="shortcut icon" href="images/favicon.png" type="">
-
   <title> LOCKHUB </title>
-
-  <!-- bootstrap core css -->
   <link rel="stylesheet" type="text/css" href="css/bootstrap.css" />
-
-  <!-- fonts style -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
-
-  <!--owl slider stylesheet -->
   <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css" />
-
-  <!-- font awesome style -->
   <link href="css/font-awesome.min.css" rel="stylesheet" />
-
-  <!-- Custom styles for this template -->
   <link href="css/style.css" rel="stylesheet" />
-  <!-- responsive style -->
   <link href="css/responsive.css" rel="stylesheet" />
 
 </head>
@@ -166,24 +179,6 @@
               LOCKHUB
             </span>
           </a>
-
-          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class=""> </span>
-          </button>
-
-          <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav">
-              <li class="nav-item active">
-                <a class="nav-link" href="main.php">Home <span class="sr-only">(current)</span></a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="about.php">About</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="why.php">Why Us</a>
-              </li>
-            </ul>
-          </div>
         </nav>
       </div>
     </header>
@@ -218,12 +213,15 @@
                 <td>
                     <form action="home.php" method="POST">
                         <input type="hidden" name="id" value="<?php echo $row['id'] ?>">
-                        <input type="password" name="new_password" placeholder="New Password" required>
+                        <input type="text" name="new_username" placeholder="New Username" value="<?php echo $row['username']; ?>" required><br><br>
+                        <input type="password" name="new_password" placeholder="New Password" required><br><br>
                         <button type="submit" name="update_password">Update Password</button>
                     </form>
-                    <form action="" method="POST" onsubmit="return confirm('Are you sure you want to delete this password?');">
-                        <input type="hidden" name="delete_id" value="<?php echo $row['id']; ?>">
-                        <button type="submit" name="delete_password">Delete</button>
+
+                    <!-- Delete Button -->
+                    <form action="home.php" method="POST">
+                        <input type="hidden" name="delete_id" value="<?php echo $row['id'] ?>">
+                        <button type="submit" name="delete_password" class="btn delete-btn">Delete</button>
                     </form>
                 </td>
             </tr>
@@ -254,7 +252,35 @@
             <input type="text" id="gen_pass" name="gen_pass" readonly value="<?php echo $generated_password ?>"><br><br>
             <button type="submit" name="gen_pass_btn">Generate</button>
         </form>
+    
+        <h2>Account Settings</h2>
+
+        <!-- Update Account Password Form -->
+        <h3>Update Account Password</h3>
+        <form action="account_settings.php" method="POST">
+            <label for="current_password">Current Password:</label>
+            <input type="password" id="current_password" name="current_password" required><br><br>
+
+            <label for="new_password">New Password:</label>
+            <input type="password" id="new_password" name="new_password" required><br><br>
+
+            <button type="submit" name="update_account_password">Update Password</button>
+        </form>
+
+        <!-- Delete Account Form -->
+        <h3>Delete Account</h3>
+        <form action="account_settings.php" method="POST" onsubmit="return confirmDelete();">
+            <button type="submit" name="delete_account" style="background-color:red; color:white;">Delete Account</button>
+        </form>
+                
+        
+        <script>
+            function confirmDelete() {
+                return confirm("Are you sure you want to delete your account? This action is irreversible!");
+            }
+        </script>
     </div>
+
 
     <!-- Info Section -->
     <section class="info_section layout_padding2">
@@ -316,5 +342,7 @@
             }
         }
     </script>
+
+
 </body>
 </html>
