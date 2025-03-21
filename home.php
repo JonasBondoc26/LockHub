@@ -223,6 +223,8 @@
                         <input type="hidden" name="delete_id" value="<?php echo $row['id'] ?>">
                         <button type="submit" name="delete_password" class="btn delete-btn">Delete</button>
                     </form>
+
+                    
                 </td>
             </tr>
             <?php } ?>
@@ -269,13 +271,13 @@
 
         <!-- Delete Account Form -->
         <h3>Delete Account</h3>
-        <form action="account_settings.php" method="POST" onsubmit="return confirmDelete();">
+        <form action="account_settings.php" method="POST" onsubmit="return confirmDeleteAcc();">
             <button type="submit" name="delete_account" style="background-color:red; color:white;">Delete Account</button>
         </form>
                 
         
         <script>
-            function confirmDelete() {
+            function confirmDeleteAcc() {
                 return confirm("Are you sure you want to delete your account? This action is irreversible!");
             }
         </script>
