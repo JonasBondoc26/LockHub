@@ -131,62 +131,42 @@
   </section>
   <!-- End of Ending Section -->
 
-  <!-- Info Section -->
-  <section class="info_section layout_padding2">
+     <!-- Info Section -->
+     <section class="info_section layout_padding2">
     <div class="container">
-      <div class="row">
-        <!-- Contact Information Column -->
-        <div class="col-md-6 col-lg-3 info_col">
-          <div class="info_contact">
-            <h4>Contact Information</h4>
-            <div class="contact_link_box">
-              <a href="">
-                <i class="fa fa-map-marker" aria-hidden="true"></i>
-                <span>Location</span>
-              </a>
-              <a href="">
-                <i class="fa fa-phone" aria-hidden="true"></i>
-                <span>Call +01 1234567890</span>
-              </a>
-              <a href="">
-                <i class="fa fa-envelope" aria-hidden="true"></i>
-                <span>support@lockhub.com</span>
-              </a>
+        <div class="row justify-content-center text-center">
+            <div class="col-md-4 info_col">
+                <div class="info_contact">
+                    <h4>Contact Information</h4>
+                    <div class="contact_link_box">
+                        <a href="mailto:support@lockhub.com">
+                            <i class="fa fa-envelope" aria-hidden="true"></i> support@lockhub.com
+                        </a>
+                        <a href="tel:+011234567890">
+                            <i class="fa fa-phone" aria-hidden="true"></i> Call +01 1234567890
+                        </a>
+                    </div>
+                </div>
             </div>
-          </div>
-        </div>
-
-          <!-- Info Description Column -->
-          <div class="col-md-6 col-lg-3 info_col">
-            <div class="info_detail">
-              <h4>About Us</h4>
-              <p>LockHub is a secure password manager that stores your passwords and sensitive data, accessible anytime, anywhere. Your security, our priority.</p>
+            <div class="col-md-4 info_col">
+                <div class="info_detail">
+                    <h4>About Us</h4>
+                    <p>LockHub is a secure password manager that stores your passwords and sensitive data, accessible anytime, anywhere.</p>
+                </div>
             </div>
-          </div>
-
-        <!-- Quick Links Column -->
-        <div class="col-md-6 col-lg-3 mx-auto info_col">
-          <div class="info_link_box">
-            <h4>Quick Links</h4>
-            <div class="info_links">
-              <a href="home.php">Home</a>
-              <a href="about.php">About</a>
-              <a href="why.php">Why Us</a>
+            <div class="col-md-4 info_col">
+                <div class="info_link_box">
+                    <h4>Quick Links</h4>
+                    <div class="info_links">
+                        <a href="home.php">Home</a>
+                        <a href="about.php">About</a>
+                        <a href="why.php">Why Us</a>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
-
-        <!-- Subscription Column -->
-        <div class="col-md-6 col-lg-3 info_col">
-          <h4>Subscribe</h4>
-          <form action="#">
-            <input type="text" placeholder="Enter email" />
-            <button type="submit">Subscribe</button>
-          </form>
-        </div>
-      </div>
     </div>
-  </section>
+</section>
   <!-- End Info Section -->
 
   <!-- footer section -->

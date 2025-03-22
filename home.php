@@ -171,165 +171,231 @@
       </div>
     </div>
     <!-- header section starts -->
-    <header class="header_section">
-      <div class="container-fluid">
-        <nav class="navbar navbar-expand-lg custom_nav-container">
-          <a class="navbar-brand" href="main.php">
-            <span>
-              LOCKHUB
-            </span>
-          </a>
-        </nav>
-      </div>
+    <header style="display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background-color: #1A237E; color: white;">
+    <h2 style="margin: 0;">LOCKHUB</h2>
+    <a href="logout.php" style="background-color: white; color: black; padding: 8px 15px; border-radius: 5px; text-decoration: none; font-weight: bold;">Logout</a>
     </header>
     <!-- end header section -->
 
     <!-- Main Content Section -->
     <div class="home-page">
-        <!-- Logout Form -->
-     
-        <!-- Logout Form -->
-        <form method="POST">
-            <button type="submit" name="logout" class="btn logout-btn">Logout</button>
-        </form>
 
         <!-- Password Management Section -->
-        <h2>Your Stored Passwords</h2>
-        <table>
-            <tr>
-                <th>Website</th>
-                <th>Username</th>
-                <th>Password</th>
-                <th>Action</th>
-            </tr>
-            <?php while ($row = mysqli_fetch_assoc($result)) { ?>
-            <tr>
-                <td><?php echo $row['website']; ?></td>
-                <td><?php echo $row['username']; ?></td>
-                <td class="password-field">
-                    <input type="password" id="password-<?php echo $row['id']; ?>" value="<?php echo $row['password']; ?>" disabled>
-                    <button type="button" class="show-btn" onclick="togglePasswordVisibility(<?php echo $row['id']; ?>)">Show</button>
-                </td>
-                <td>
-                    <form action="home.php" method="POST">
-                        <input type="hidden" name="id" value="<?php echo $row['id'] ?>">
-                        <input type="text" name="new_username" placeholder="New Username" value="<?php echo $row['username']; ?>" required><br><br>
-                        <input type="password" name="new_password" placeholder="New Password" required><br><br>
-                        <button type="submit" name="update_password">Update Password</button>
-                    </form>
+</style>
 
-                    <!-- Delete Button -->
-                    <form action="home.php" method="POST">
-                        <input type="hidden" name="delete_id" value="<?php echo $row['id'] ?>">
-                        <button type="submit" name="delete_password" class="btn delete-btn">Delete</button>
-                    </form>
+<div style="display: flex; justify-content: center; gap: 50px; flex-wrap: wrap; margin-top: 50px;">
 
+<!-- Add New Password Section -->
+<div style="width: 500px; background: #e6f2ff; padding: 30px; border-radius: 10px;">
+    <h3 style="text-align: center;">Add New Password</h3>
+    <form action="" method="POST" style="display: flex; flex-direction: column; align-items: center;">
+        <label for="website">Website:</label>
+        <input type="text" id="website" name="website" required style="width: 95%; padding: 10px; margin-bottom: 15px;">
+
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required style="width: 95%; padding: 10px; margin-bottom: 15px;">
+
+        <label for="password">Password:</label>
+        <input type="text" id="password" name="password" required style="width: 95%; padding: 10px; margin-bottom: 15px;">
+
+        <button type="submit" name="add_password" style="width: 100%; padding: 12px; background-color: #0099ff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Add Password
+        </button>
+    </form>
+</div>
+
+<!-- Generate Strong Password Section -->
+<div style="width: 500px; background: #e6f2ff; padding: 30px; border-radius: 10px;">
+    <h3 style="text-align: center;">Generate Strong Password</h3>
+    <form action="" method="POST" style="display: flex; flex-direction: column; align-items: center;">
+        <label for="gen_pass_len">Length of password (Minimum of 12):</label>
+        <input type="number" id="gen_pass_len" name="gen_pass_len" min="12" style="width: 95%; padding: 10px; margin-bottom: 15px;">
+
+        <label for="gen_pass">Generated password:</label>
+        <input type="text" id="gen_pass" name="gen_pass" readonly value="<?php echo $generated_password ?>" style="width: 95%; padding: 10px; margin-bottom: 15px;">
+
+        <button type="submit" name="gen_pass_btn" style="width: 100%; padding: 12px; background-color: #0099ff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Generate
+        </button>
+    </form>
+</div>
+
+</div>
+
+<h2>Your Stored Passwords</h2>
+<table>
+    <tr>
+        <th>Website</th>
+        <th>Username</th>
+        <th>Password</th>
+    </tr>
+    <?php while ($row = mysqli_fetch_assoc($result)) { ?>
+    <tr>
+        <td><?php echo htmlspecialchars($row['website']); ?></td>
+        <td><?php echo htmlspecialchars($row['username']); ?></td>
+        <td class="password-field">
+            <input type="password" id="password-<?php echo $row['id']; ?>" value="<?php echo htmlspecialchars($row['password']); ?>" disabled>
+            <button type="button" class="show-btn" onclick="togglePasswordVisibility(<?php echo $row['id']; ?>)">Show</button>
+        </td>
+    </tr>
+
+    <!-- New Row for Actions -->
+    <tr class="action-row">
+        <td colspan="3" class="form-cell">
+            <div class="form-wrapper">
+                <!-- Update Form -->
+                <form action="home.php" method="POST">
+                    <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
+                    <input type="text" name="new_username" placeholder="New Username" value="<?php echo htmlspecialchars($row['username']); ?>" required>
                     
-                </td>
-            </tr>
-            <?php } ?>
-        </table>
-
-        <h3>Add New Password</h3>
-        <form action="" method="POST">
-            <label for="website">Website:</label>
-            <input type="text" id="website" name="website" required><br><br>
-
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required><br><br>
-
-            <label for="password">Password:</label>
-            <input type="text" id="password" name="password" required><br><br>
-
-            <button type="submit" name="add_password">Add Password</button>
-        </form>
-
-        <!-- Password Generator -->
-        <h3>Generate Strong Password</h3>
-        <form action="" method="POST">
-            <label for="gen_pass_len">Length of password (Minimum of 12):</label>
-            <input type="number" id="gen_pass_len" name="gen_pass_len" min="12"><br><br>
-
-            <label for="gen_pass">Generated password:</label>
-            <input type="text" id="gen_pass" name="gen_pass" readonly value="<?php echo $generated_password ?>"><br><br>
-            <button type="submit" name="gen_pass_btn">Generate</button>
-        </form>
-    
-        <h2>Account Settings</h2>
-
-        <!-- Update Account Password Form -->
-        <h3>Update Account Password</h3>
-        <form action="account_settings.php" method="POST">
-            <label for="current_password">Current Password:</label>
-            <input type="password" id="current_password" name="current_password" required><br><br>
-
-            <label for="new_password">New Password:</label>
-            <input type="password" id="new_password" name="new_password" required><br><br>
-
-            <button type="submit" name="update_account_password">Update Password</button>
-        </form>
-
-        <!-- Delete Account Form -->
-        <h3>Delete Account</h3>
-        <form action="account_settings.php" method="POST" onsubmit="return confirmDeleteAcc();">
-            <button type="submit" name="delete_account" style="background-color:red; color:white;">Delete Account</button>
-        </form>
+                    <hr> <!-- Line between inputs -->
+                    
+                    <input type="password" name="new_password" placeholder="New Password" required>
+                    <button type="submit" name="update_password" class="btn update-btn">Update</button>
+                </form>
                 
-        
-        <script>
-            function confirmDeleteAcc() {
-                return confirm("Are you sure you want to delete your account? This action is irreversible!");
-            }
-        </script>
-    </div>
+                <!-- Delete Form -->
+                <form action="home.php" method="POST" onsubmit="return confirm('Are you sure you want to delete this password?');">
+                    <input type="hidden" name="delete_id" value="<?php echo $row['id']; ?>">
+                    <button type="submit" name="delete_password" class="btn delete-btn">Delete</button>
+                </form>
+            </div>
+        </td>
+    </tr>
 
+    <tr>
+    <td colspan="3">
+        <hr style="height: 3px; border: none; background: linear-gradient(to right, #007bff, #00aaff);">
+    </td>
+</tr>
 
-    <!-- Info Section -->
-    <section class="info_section layout_padding2">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6 col-lg-3 info_col">
-                    <div class="info_contact">
-                        <h4>Contact Information</h4>
-                        <div class="contact_link_box">
-                            <a href="mailto:support@lockhub.com"><i class="fa fa-envelope" aria-hidden="true"></i> support@lockhub.com</a>
-                            <a href="tel:+011234567890"><i class="fa fa-phone" aria-hidden="true"></i> Call +01 1234567890</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-3 info_col">
-                    <div class="info_detail">
-                        <h4>About Us</h4>
-                        <p>LockHub is a secure password manager that stores your passwords and sensitive data, accessible anytime, anywhere.</p>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-3 mx-auto info_col">
-                    <div class="info_link_box">
-                        <h4>Quick Links</h4>
-                        <div class="info_links">
-                            <a href="home.php">Home</a>
-                            <a href="about.php">About</a>
-                            <a href="why.php">Why Us</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-3 info_col">
-                    <h4>Subscribe</h4>
-                    <form action="#">
-                        <input type="text" placeholder="Enter email" />
-                        <button type="submit">Subscribe</button>
-                    </form>
-                </div>
+    <?php } ?>
+</table>
+
+<style>
+/* Center the form container */
+.form-cell {
+    padding: 20px;
+    text-align: center;
+}
+
+/* Center and style the form container */
+.form-wrapper {
+    display: flex;
+    flex-direction: column; 
+    align-items: center; 
+    width: 100%;
+    max-width: 500px;
+    background: white;
+    padding: 30px;
+    margin: 20px auto;
+    border-radius: 12px;
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Style input fields */
+input {
+    width: 100%;
+    padding: 14px;
+    margin: 12px 0;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 16px;
+}
+
+/* Center buttons and make them wider */
+.btn-group {
+    display: flex;
+    flex-direction: column; 
+    width: 100%;
+    gap: 10px;
+}
+
+/* Make buttons longer */
+.btn {
+    width: 100%; 
+    max-width: 450px; 
+    padding: 16px; 
+    border: none;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 18px; 
+    text-align: center;
+}
+
+/* Update button */
+.update-btn {
+    background-color: #00bfff;
+    color: white;
+}
+
+/* Delete button */
+.delete-btn {
+    background-color: #ff4d4d;
+    color: white;
+}
+
+</style>
+
+<form action="account_settings.php" method="POST">
+    <h2>Account Settings</h2>
+
+    <!-- Update Account Password Form -->
+    <h3>Update Account Password</h3>
+    <label for="current_password">Current Password:</label>
+    <input type="password" id="current_password" name="current_password" required><br><br>
+
+    <label for="new_password">New Password:</label>
+    <input type="password" id="new_password" name="new_password" required><br><br>
+
+    <button type="submit" name="update_account_password">Update Password</button>
+</form>
+
+<!-- Delete Account Form (Separate) -->
+<form action="account_settings.php" method="POST" onsubmit="return confirmDeleteAcc();">
+    <h3>Delete Account</h3>
+    <button type="submit" name="delete_account" style="background-color:red; color:white;">Delete Account</button>
+</form>
+
+<script>
+    function confirmDeleteAcc() {
+        return confirm("Are you sure you want to delete your account? This action is irreversible!");
+    }
+</script>
+
+<!-- Info Section -->
+<section style="background-color: black; color: white; width: 100%; padding: 20px 0;">
+    <div style="max-width: 1200px; margin: auto; text-align: center;">
+        <div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
+            <div>
+                <h4>Contact Information</h4>
+                <a href="mailto:support@lockhub.com" style="color: white; text-decoration: none; display: block;">
+                    <i class="fa fa-envelope"></i> support@lockhub.com
+                </a>
+                <a href="tel:+011234567890" style="color: white; text-decoration: none; display: block;">
+                    <i class="fa fa-phone"></i> Call +01 1234567890
+                </a>
+            </div>
+            <div>
+                <h4>About Us</h4>
+                <p style="margin: 0;">LockHub is a secure password manager that stores your passwords and sensitive data, accessible anytime, anywhere.</p>
+            </div>
+            <div>
+                <h4>Quick Links</h4>
+                <a href="home.php" style="color: white; text-decoration: none; display: block;">Home</a>
+                <a href="about.php" style="color: white; text-decoration: none; display: block;">About</a>
+                <a href="why.php" style="color: white; text-decoration: none; display: block;">Why Us</a>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- Footer Section -->
-    <section class="footer_section">
-        <div class="container">
-            <p>&copy; <span id="displayYear"></span> All Rights Reserved By <a href="https://lockhub.com/">LockHub</a></p>
-        </div>
-    </section>
+<!-- Footer Section -->
+<section style="background-color: white; text-align: center; padding: 10px 0; width: 100%;">
+    <p style="margin: 0; color: black;">&copy; <span id="displayYear"></span> All Rights Reserved By 
+        <a href="https://lockhub.com/" style="color: black; text-decoration: none;">LockHub</a>
+    </p>
+</section>
 
     <script>
         // Toggle the visibility of the password
@@ -344,7 +410,5 @@
             }
         }
     </script>
-
-
 </body>
 </html>
