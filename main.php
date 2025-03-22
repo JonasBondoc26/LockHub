@@ -60,7 +60,7 @@
           <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav">
               <li class="nav-item active">
-                <a class="nav-link" href="main.php">Home <span class="sr-only">(current)</span></a>
+                <a class="nav-link active" href="main.php">Home <span class="sr-only">(current)</span></a>
               </li>
               <li class="nav-item">
                 <a class="nav-link" href="about.php">About</a>
@@ -68,7 +68,7 @@
               <li class="nav-item">
                 <a class="nav-link" href="why.php">Why Us</a>
               </li>
-              <li class="nav-item active">
+              <li class="nav-item">
                 <a class="nav-link" href="signup.php">Sign Up</a>
               </li>
               <!-- Update the Login link to point to login.php -->
@@ -108,7 +108,7 @@
               </div>
               <div class="col-md-6">
                 <div class="img-box">
-                  <img src="images/slider.png" alt="">
+                  <img src="images/slider1.png" alt="">
                 </div>
               </div>
             </div>
@@ -120,12 +120,11 @@
               <div class="col-md-6">
                 <div class="detail-box">
                   <h1>
-                    LOCKHUB <br>
-                    Password Manager
+                    WHY CHOOSE <br>
+                    LOCKHUB
                   </h1>
                   <p>
-                    Secure and manage your passwords effortlessly with LOCKHUB. With top-tier encryption and easy access, your online security is guaranteed. Keep all your credentials safe in one place with zero hassle.
-                  </p>
+                    Create strong, randomized passwords to enhance security. Your passwords are protected with encryption, ensuring only you have access. Powerful security and seamless convenience all in one click.                  </p>
                   <div class="btn-box">
                     <!-- Updated the href to link to the About page -->
                     <a href="about.php" class="btn1">
@@ -136,7 +135,7 @@
               </div>
               <div class="col-md-6">
                 <div class="img-box">
-                  <img src="images/slider.png" alt="">
+                  <img src="images/slider2.png" alt="">
                 </div>
               </div>
             </div>
@@ -148,12 +147,11 @@
               <div class="col-md-6">
                 <div class="detail-box">
                   <h1>
-                    LOCKHUB <br>
-                    Password Manager
+                    YOUR SECURITY <br>
+                    IS OUR TOP PRIORITY
                   </h1>
                   <p>
-                    Secure and manage your passwords effortlessly with LOCKHUB. With top-tier encryption and easy access, your online security is guaranteed. Keep all your credentials safe in one place with zero hassle.
-                  </p>
+                    Everything stored in LOCKHUB is protected with powerful encryption, making sure that only you can access your data—no one else, not even us. Whether you're logging in from your phone, tablet, or computer, your passwords stay safe, private, and completely in your control.                   </p>
                   <div class="btn-box">
                     <!-- Updated the href to link to the About page -->
                     <a href="about.php" class="btn1">
@@ -164,7 +162,7 @@
               </div>
               <div class="col-md-6">
                 <div class="img-box">
-                  <img src="images/slider.png" alt="">
+                  <img src="images/slider3.png" alt="">
                 </div>
               </div>
             </div>

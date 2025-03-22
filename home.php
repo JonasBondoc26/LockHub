@@ -163,16 +163,9 @@
 
 <body>
 
-  <div class="hero_area">
-
-    <div class="hero_bg_box">
-      <div class="bg_img_box">
-        <img src="images/hero.png" alt="">
-      </div>
-    </div>
     <!-- header section starts -->
     <header style="display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background-color: #1A237E; color: white;">
-    <h2 style="margin: 0;">LOCKHUB</h2>
+    <h2 style="margin: 0px;">LOCKHUB</h2>
     <a href="logout.php" style="background-color: white; color: black; padding: 8px 15px; border-radius: 5px; text-decoration: none; font-weight: bold;">Logout</a>
     </header>
     <!-- end header section -->
@@ -365,7 +358,7 @@ input {
 
 <!-- Info Section -->
 <section style="background-color: black; color: white; width: 100%; padding: 20px 0;">
-    <div style="max-width: 1200px; margin: auto; text-align: center;">
+    <div style="max-width: 100%; margin: auto; text-align: center;">
         <div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
             <div>
                 <h4>Contact Information</h4>

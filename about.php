@@ -47,7 +47,7 @@
     <header class="header_section">
       <div class="container-fluid">
         <nav class="navbar navbar-expand-lg custom_nav-container">
-          <a class="navbar-brand" href="main.php">
+          <a class="navbar-brand" href="about.php">
             <span>
               LOCKHUB
             </span>
@@ -68,7 +68,7 @@
               <li class="nav-item">
                 <a class="nav-link" href="why.php">Why Us</a>
               </li>
-              <li class="nav-item active">
+              <li class="nav-item">
                 <a class="nav-link" href="signup.php">Sign Up</a>
               </li>
               <li class="nav-item">

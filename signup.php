@@ -40,7 +40,7 @@
     <header class="header_section">
       <div class="container-fluid">
         <nav class="navbar navbar-expand-lg custom_nav-container">
-          <a class="navbar-brand" href="main.php">
+          <a class="navbar-brand" href="signup.php">
             <span>
               LOCKHUB
             </span>
@@ -62,7 +62,7 @@
                 <a class="nav-link" href="why.php">Why Us</a>
               </li>
               <li class="nav-item active">
-                <a class="nav-link" href="signup.php">Sign Up</a>
+                <a class="nav-link" href="signup.php">Sign Up <span class="sr-only">(current)</span></a>
               </li>
               <li class="nav-item">
                 <a class="nav-link" href="index.php"><i class="fa fa-user" aria-hidden="true"></i> Login</a>

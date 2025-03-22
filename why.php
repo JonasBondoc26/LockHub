@@ -44,11 +44,11 @@
       </div>
     </div>
 
-    <!-- header section strats -->
+    <!-- header section starts -->
     <header class="header_section">
       <div class="container-fluid">
-        <nav class="navbar navbar-expand-lg custom_nav-container ">
-          <a class="navbar-brand" href="main.php">
+        <nav class="navbar navbar-expand-lg custom_nav-container">
+          <a class="navbar-brand" href="why.php">
             <span>
               LOCKHUB
             </span>
@@ -59,20 +59,19 @@
           </button>
 
           <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav  ">
-              <li class="nav-item ">
-                <a class="nav-link" href="main.php">Home </a>
+            <ul class="navbar-nav">
+              <li class="nav-item">
+                <a class="nav-link" href="main.php">Home</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="about.php"> About</a>
+                <a class="nav-link" href="about.php">About</a>
               </li>
               <li class="nav-item active">
-                <a class="nav-link" href="why.php">Why Us <span class="sr-only">(current)</span> </a>
+                <a class="nav-link" href="why.php">Why Us <span class="sr-only">(current)</span></a>
               </li>
-              <li class="nav-item active">
+              <li class="nav-item">
                 <a class="nav-link" href="signup.php">Sign Up</a>
               </li>
-              <!-- Update the Login link to point to login.php -->
               <li class="nav-item">
                 <a class="nav-link" href="index.php"> <i class="fa fa-user" aria-hidden="true"></i> Login</a>
               </li>
@@ -211,7 +210,7 @@
     <div class="container">
       <p>
         &copy; <span id="displayYear"></span> All Rights Reserved By
-        <a href="https://html.design/">Free Html Templates</a>
+        <a href="https://lockhub.com/">LockHub</a>
       </p>
     </div>
   </section>
