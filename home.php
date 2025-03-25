@@ -2,6 +2,8 @@
     // Start the session
     session_start();
     include "pass_generator.php";
+    $config = include('encrypt.php');
+    define('ENCRYPTION_KEY', $config['encryption_key']);
    
     // Logout logic
     if (isset($_POST['logout'])) {
@@ -22,25 +24,30 @@
         echo "Please log in.";
         exit;
     }
-
-    // Add new password
     if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_password'])) {
         $website = $_POST['website'];
         $username = $_POST['username'];
         $password = $_POST['password'];
-
-        // Check if password already exists for the user
-        $sql_check = "SELECT * FROM passwords WHERE user_id = '" . $_SESSION['id'] . "' AND website = '$website' AND username = '$username'";
-        $result_check = mysqli_query($conn, $sql_check);
-        
+    
+        // Encrypt the password before storing it
+        $encrypted_password = encryptPassword($password);
+    
+        // Check if password already exists
+        $sql_check = "SELECT * FROM passwords WHERE user_id = ? AND website = ? AND username = ?";
+        $stmt_check = mysqli_prepare($conn, $sql_check);
+        mysqli_stmt_bind_param($stmt_check, "iss", $_SESSION['id'], $website, $username);
+        mysqli_stmt_execute($stmt_check);
+        $result_check = mysqli_stmt_get_result($stmt_check);
+    
         if (mysqli_num_rows($result_check) > 0) {
             echo "<p style='color:red;'>This password already exists.</p>";
         } else {
-            // If password doesn't exist, insert it
-            $sql = "INSERT INTO passwords (user_id, website, username, password) 
-                    VALUES ('" . $_SESSION['id'] . "', '$website', '$username', '$password')";
-            
-            if (mysqli_query($conn, $sql)) {
+
+            $sql = "INSERT INTO passwords (user_id, website, username, password) VALUES (?, ?, ?, ?)";
+            $stmt = mysqli_prepare($conn, $sql);
+            mysqli_stmt_bind_param($stmt, "isss", $_SESSION['id'], $website, $username, $encrypted_password);
+    
+            if (mysqli_stmt_execute($stmt)) {
                 echo "<p>Password added successfully!</p>";
                 header("Location: home.php");  // Redirect to avoid re-submission
                 exit();
@@ -48,6 +55,9 @@
                 echo "Error: " . mysqli_error($conn);
             }
         }
+        
+        mysqli_stmt_close($stmt_check);
+        mysqli_stmt_close($stmt);
     }
 
 
@@ -72,11 +82,14 @@
         $new_username = $_POST['new_username'];
     
         if (empty($id) || empty($new_password) || empty($new_username)) {
-            echo "<p style='color:red;'>Error: ID, username or password is empty.</p>";
+            echo "<p style='color:red;'>Error: ID, username, or password is empty.</p>";
         } else {
+            // Encrypt the new password before updating
+            $encrypted_password = encryptPassword($new_password);
+    
             $sql = "UPDATE passwords SET password = ?, username = ? WHERE id = ?";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("ssi", $new_password, $new_username, $id);
+            $stmt->bind_param("ssi", $encrypted_password, $new_username, $id);
     
             if ($stmt->execute()) {
                 echo "<script>setTimeout(() => { window.location.href = 'home.php'; }, 10);</script>";
@@ -109,26 +122,33 @@
         }
     }
 
-    // Fetch stored passwords for display
-    $sql = "SELECT * FROM passwords WHERE user_id = '" . $_SESSION['id'] . "'";
-    $result = mysqli_query($conn, $sql);
-
+    $sql = "SELECT * FROM passwords WHERE user_id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $_SESSION['id']);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    // Handle account password update
     if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_account_password'])) {
         $current_password = $_POST['current_password'];
         $new_password = $_POST['new_password'];
     
-        // Fetch the current password from the database
-        $sql = "SELECT password FROM users WHERE id = '" . $_SESSION['id'] . "'";
-        $result = mysqli_query($conn, $sql);
-        $user = mysqli_fetch_assoc($result);
+        // Fetch the hashed password from the database
+        $sql = "SELECT password FROM users WHERE id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $_SESSION['id']);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $user = $result->fetch_assoc();
     
+        // Verify if the current password matches the stored hash
         if (password_verify($current_password, $user['password'])) {
-            // If current password matches, update to the new password
+            // If current password is correct, hash the new password
             $hashed_new_password = password_hash($new_password, PASSWORD_DEFAULT);
             $update_sql = "UPDATE users SET password = ? WHERE id = ?";
             $stmt = $conn->prepare($update_sql);
             $stmt->bind_param("si", $hashed_new_password, $_SESSION['id']);
-            
+    
             if ($stmt->execute()) {
                 echo "<p>Password updated successfully!</p>";
             } else {
@@ -137,6 +157,17 @@
         } else {
             echo "<p style='color:red;'>Current password is incorrect.</p>";
         }
+    }
+    function encryptPassword($password) {
+        $iv = openssl_random_pseudo_bytes(16);
+        $encrypted = openssl_encrypt($password, 'AES-256-CBC', ENCRYPTION_KEY, 0, $iv);
+        return base64_encode($iv . $encrypted);
+    }
+    function decryptPassword($encryptedPassword) {
+        $data = base64_decode($encryptedPassword);
+        $iv = substr($data, 0, 16);
+        $encrypted = substr($data, 16);
+        return openssl_decrypt($encrypted, 'AES-256-CBC', ENCRYPTION_KEY, 0, $iv);
     }
 ?>
 
@@ -227,7 +258,10 @@
         <td><?php echo htmlspecialchars($row['website']); ?></td>
         <td><?php echo htmlspecialchars($row['username']); ?></td>
         <td class="password-field">
-            <input type="password" id="password-<?php echo $row['id']; ?>" value="<?php echo htmlspecialchars($row['password']); ?>" disabled>
+            <?php 
+                $decryptedPassword = decryptPassword($row['password']); 
+            ?>
+            <input type="password" id="password-<?php echo $row['id']; ?>" value="<?php echo htmlspecialchars($decryptedPassword); ?>" disabled>
             <button type="button" class="show-btn" onclick="togglePasswordVisibility(<?php echo $row['id']; ?>)">Show</button>
         </td>
     </tr>
