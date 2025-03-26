@@ -57,6 +57,25 @@ CREATE TABLE passwords (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
+CREATE TABLE password_history (
+    history_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    old_password_hash VARCHAR(255) NOT NULL,
+    change_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+
+CREATE TABLE audit_logs (
+    log_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    action_type VARCHAR(255) NOT NULL,  
+    action_description TEXT,  
+    action_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+
 -- ADD THIS IN MYSQL DATABASE USE (lockhub_db) TO AVOID DUPLICATING THE TABLES WHEN REFRESHING
 ALTER TABLE passwords
 ADD CONSTRAINT unique_user_password UNIQUE (user_id, website, username);
