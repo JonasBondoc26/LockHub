@@ -12,62 +12,86 @@ if (!isset($_SESSION['id'])) {
     exit();
 }
 
-// Update Account Password
+$user_id = $_SESSION['id'];
+
+// Process password update when submitted from home.php
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_account_password'])) {
     $current_password = $_POST['current_password'];
     $new_password = $_POST['new_password'];
 
-    
-    // Fetch the current password from database
+    // Fetch the hashed password from the database
     $sql = "SELECT password FROM users WHERE id = ?";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $_SESSION['id']);
+    $stmt->bind_param("i", $user_id);
     $stmt->execute();
     $result = $stmt->get_result();
     $user = $result->fetch_assoc();
+    $stmt->close();
 
-    $sql = "SELECT password FROM users WHERE id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $_SESSION['id']);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $user = $result->fetch_assoc();
-
-    if ($user) {
-        echo "Stored hashed password: " . $user['password'] . "<br>";
-        echo "Entered password: " . $current_password . "<br>";
-
-        if (password_verify($current_password, $user['password'])) {
-            echo "Password match!";
-        } else {
-            echo "Password mismatch!";
-        }
+    if (!$user) {
+        echo "<p style='color:red;'>Error: User not found.</p>";
+        exit();
     }
 
-    if ($user && password_verify($current_password, $user['password'])) {
-        // Hash new password
-        $hashed_new_password = password_hash($new_password, PASSWORD_DEFAULT);
-        $update_sql = "UPDATE users SET password = ? WHERE id = ?";
-        $update_stmt = $conn->prepare($update_sql);
-        $update_stmt->bind_param("si", $hashed_new_password, $_SESSION['id']);
-
-        if ($update_stmt->execute()) {
-            echo "<script>alert('Password updated successfully!'); window.location.href = 'home.php';</script>";
-        } else {
-            echo "<p style='color:red;'>Error updating password: " . $update_stmt->error . "</p>";
-        }
-    } else {
+    // Verify the current password matches
+    if (!password_verify($current_password, $user['password'])) {
         echo "<p style='color:red;'>Current password is incorrect.</p>";
+        exit();
     }
+
+    // Check if the new password matches an old password in history
+    $historyQuery = "SELECT old_password_hash FROM password_history WHERE user_id = ?";
+    $stmt = $conn->prepare($historyQuery);
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $historyResult = $stmt->get_result();
+    $stmt->close();
+
+    while ($row = $historyResult->fetch_assoc()) {
+        if (password_verify($new_password, $row['old_password_hash'])) {
+            echo "<p style='color:red;'>Error: You cannot reuse a previously used password.</p>";
+            exit();
+        }
+    }
+
+    // Store the old password in password history before updating
+    $insertHistoryQuery = "INSERT INTO password_history (user_id, old_password_hash) VALUES (?, ?)";
+    $stmt = $conn->prepare($insertHistoryQuery);
+    $stmt->bind_param("is", $user_id, $user['password']);
+    if (!$stmt->execute()) {
+        echo "<p style='color:red;'>Error saving old password: " . $stmt->error . "</p>";
+        exit();
+    }
+    $stmt->close();
+
+    // Hash the new password
+    $hashed_new_password = password_hash($new_password, PASSWORD_DEFAULT);
+
+    // Update password in users table
+    $update_sql = "UPDATE users SET password = ? WHERE id = ?";
+    $stmt = $conn->prepare($update_sql);
+    $stmt->bind_param("si", $hashed_new_password, $user_id);
+
+    if ($stmt->execute()) {
+        echo "<script>alert('Password updated successfully!'); window.location.href = 'home.php';</script>";
+    } else {
+        echo "<p style='color:red;'>Error updating password: " . $stmt->error . "</p>";
+    }
+
+    $stmt->close();
 }
 
 // Delete Account
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_account'])) {
-    $user_id = $_SESSION['id'];
-
-    // Delete all stored passwords first (optional, to clean up data)
+    // Delete stored passwords first
     $delete_passwords_sql = "DELETE FROM passwords WHERE user_id = ?";
     $stmt = $conn->prepare($delete_passwords_sql);
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+
+    // Delete password history
+    $delete_history_sql = "DELETE FROM password_history WHERE user_id = ?";
+    $stmt = $conn->prepare($delete_history_sql);
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
 

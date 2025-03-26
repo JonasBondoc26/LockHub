@@ -22,7 +22,7 @@
     // Check if the user is logged in
     if (!isset($_SESSION['id'])) {
         echo "Please log in.";
-        exit;
+        exit();
     }
     if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_password'])) {
         $website = $_POST['website'];
@@ -92,6 +92,7 @@
             $stmt->bind_param("ssi", $encrypted_password, $new_username, $id);
     
             if ($stmt->execute()) {
+                logAudit($conn, $_SESSION['id'], "Stored Password Updated", "Updated credentials for stored password ID: $id");
                 echo "<script>setTimeout(() => { window.location.href = 'home.php'; }, 10);</script>";
                 exit();
             } else {
@@ -115,6 +116,7 @@
         $stmt->bind_param("i", $delete_id);
     
         if ($stmt->execute()) {
+            logAudit($conn, $_SESSION['id'], "Stored Password Deleted", "Deleted stored password ID: $delete_id");
             echo "<script>setTimeout(() => { window.location.href = 'home.php'; }, 10);</script>";
             exit();
         } else {
@@ -128,36 +130,99 @@
     $stmt->execute();
     $result = $stmt->get_result();
     
-    // Handle account password update
-    if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_account_password'])) {
-        $current_password = $_POST['current_password'];
-        $new_password = $_POST['new_password'];
-    
-        // Fetch the hashed password from the database
-        $sql = "SELECT password FROM users WHERE id = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $_SESSION['id']);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $user = $result->fetch_assoc();
-    
-        // Verify if the current password matches the stored hash
-        if (password_verify($current_password, $user['password'])) {
-            // If current password is correct, hash the new password
-            $hashed_new_password = password_hash($new_password, PASSWORD_DEFAULT);
-            $update_sql = "UPDATE users SET password = ? WHERE id = ?";
-            $stmt = $conn->prepare($update_sql);
-            $stmt->bind_param("si", $hashed_new_password, $_SESSION['id']);
-    
-            if ($stmt->execute()) {
-                echo "<p>Password updated successfully!</p>";
-            } else {
-                echo "<p style='color:red;'>Error updating password: " . $stmt->error . "</p>";
-            }
-        } else {
-            echo "<p style='color:red;'>Current password is incorrect.</p>";
+  // Handle account password update with password history tracking
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_account_password'])) {
+
+    if (!$conn) {
+        die("Connection failed: " . mysqli_connect_error());
+    }
+
+    $current_password = trim($_POST['current_password']);
+    $new_password = trim($_POST['new_password']);
+    $user_id = $_SESSION['id'];
+
+    // Ensure input fields are not empty
+    if (empty($current_password) || empty($new_password)) {
+        echo "<p style='color:red;'>Error: All fields are required.</p>";
+        exit();
+    }
+
+    // Fetch the user's current hashed password
+    $sql = "SELECT password FROM users WHERE id = ?";
+    $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        die("SQL Error (Fetch User Password): " . $conn->error);
+    }
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $user = $result->fetch_assoc();
+    $stmt->close();
+
+    if (!$user) {
+        echo "<p style='color:red;'>Error: User not found.</p>";
+        exit();
+    }
+
+    // Verify the current password matches
+    if (!password_verify($current_password, $user['password'])) {
+        echo "<p style='color:red;'>Error: Current password is incorrect.</p>";
+        exit();
+    }
+
+    // Check if the new password matches an old password in history
+    $historyQuery = "SELECT old_password_hash FROM password_history WHERE user_id = ?";
+    $stmt = $conn->prepare($historyQuery);
+    if (!$stmt) {
+        die("SQL Error (Fetch History): " . $conn->error);
+    }
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $historyResult = $stmt->get_result();
+    $stmt->close();
+
+    while ($row = $historyResult->fetch_assoc()) {
+        if (password_verify($new_password, $row['old_password_hash'])) {
+            echo "<p style='color:red;'>Error: You cannot reuse a previously used password.</p>";
+            exit();
         }
     }
+
+    // Store the old password in the password history table before updating
+    $insertHistoryQuery = "INSERT INTO password_history (user_id, old_password_hash) VALUES (?, ?)";
+    $stmt = $conn->prepare($insertHistoryQuery);
+    if (!$stmt) {
+        die("SQL Error (Insert History): " . $conn->error);
+    }
+    $stmt->bind_param("is", $user_id, $user['password']);
+    if (!$stmt->execute()) {
+        echo "<p style='color:red;'>Error saving old password: " . $stmt->error . "</p>";
+        exit();
+    }
+    $stmt->close();
+
+    // Hash the new password securely
+    $hashed_new_password = password_hash($new_password, PASSWORD_DEFAULT);
+
+    // Update the user's password in the database
+    $update_sql = "UPDATE users SET password = ? WHERE id = ?";
+    $stmt = $conn->prepare($update_sql);
+    if (!$stmt) {
+        die("SQL Error (Update Password): " . $conn->error);
+    }
+    $stmt->bind_param("si", $hashed_new_password, $user_id);
+
+    if ($stmt->execute()) {
+        logAudit($conn, $_SESSION['id'], "Account Password Updated", "User changed their account password.");
+        echo "<script>alert('Password updated successfully!'); window.location.href = 'home.php';</script>";
+    } else {
+        echo "<p style='color:red;'>Error updating password: " . $stmt->error . "</p>";
+    }
+
+    $stmt->close();
+    mysqli_close($conn);
+}
+
     function encryptPassword($password) {
         $iv = openssl_random_pseudo_bytes(16);
         $encrypted = openssl_encrypt($password, 'AES-256-CBC', ENCRYPTION_KEY, 0, $iv);
@@ -168,6 +233,16 @@
         $iv = substr($data, 0, 16);
         $encrypted = substr($data, 16);
         return openssl_decrypt($encrypted, 'AES-256-CBC', ENCRYPTION_KEY, 0, $iv);
+    }
+    function logAudit($conn, $user_id, $action_type, $action_description) {
+        $sql = "INSERT INTO audit_logs (user_id, action_type, action_description) VALUES (?, ?, ?)";
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            die("SQL Error (Audit Log Insert): " . $conn->error);
+        }
+        $stmt->bind_param("iss", $user_id, $action_type, $action_description);
+        $stmt->execute();
+        $stmt->close();
     }
 ?>
 
