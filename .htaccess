@@ -1,0 +1,16 @@
+Options -Indexes
+DirectoryIndex index.php
+
+# Optional: force HTTPS. Only turn this on AFTER your host has issued an SSL
+# certificate for your domain, or visitors will get a certificate error.
+# To enable it, remove the "#" at the start of the five lines below.
+#<IfModule mod_rewrite.c>
+#  RewriteEngine On
+#  RewriteCond %{HTTPS} off
+#  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+#</IfModule>
+
+# Don't serve docs or SQL files.
+<FilesMatch "\.(md|sql)$">
+  Require all denied
+</FilesMatch>

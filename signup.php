@@ -1,171 +1,107 @@
-<!DOCTYPE html>
-<html lang="en">
+<?php
+require __DIR__ . '/includes/bootstrap.php';
 
-<head>
-  <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-  <meta name="keywords" content="" />
-  <meta name="description" content="LockHub - Your Secure Password Manager" />
-  <meta name="author" content="LockHub Team" />
-  <link rel="shortcut icon" href="images/favicon.png" type="image/x-icon">
+if (is_logged_in()) {
+    redirect('home.php');
+}
 
-  <title>LOCKHUB - Sign Up</title>
+$errors = [];
+$name = '';
+$uname = '';
 
-  <!-- bootstrap core css -->
-  <link rel="stylesheet" type="text/css" href="css/bootstrap.css" />
+if (is_post()) {
+    require_csrf('signup.php');
 
-  <!-- fonts style -->
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+    $name     = trim($_POST['name'] ?? '');
+    $uname    = trim($_POST['uname'] ?? '');
+    $pass     = $_POST['password'] ?? '';
+    $re_pass  = $_POST['re_password'] ?? '';
 
-  <!-- font awesome style -->
-  <link href="css/font-awesome.min.css" rel="stylesheet" />
+    if ($name === '' || mb_strlen($name) > 100) {
+        $errors['name'] = 'Enter your name (up to 100 characters).';
+    }
+    if (!preg_match('/^[A-Za-z0-9_.-]{3,30}$/', $uname)) {
+        $errors['uname'] = 'Use 3–30 letters, numbers, dots, dashes or underscores.';
+    }
+    if (mb_strlen($pass) < 8) {
+        $errors['password'] = 'Your master password needs at least 8 characters.';
+    } elseif (password_strength($pass) < 2) {
+        $errors['password'] = 'That password is too easy to guess. Make it longer or mix in numbers and symbols.';
+    }
+    if ($pass !== $re_pass) {
+        $errors['re_password'] = "The passwords don't match.";
+    }
 
-  <!-- Custom styles for this template -->
-  <link href="css/style.css" rel="stylesheet" />
-  <!-- responsive style -->
-  <link href="css/responsive.css" rel="stylesheet" />
-</head>
+    if (!$errors) {
+        $conn = db();
+        $stmt = $conn->prepare('SELECT id FROM users WHERE user_name = ?');
+        $stmt->bind_param('s', $uname);
+        $stmt->execute();
+        if ($stmt->get_result()->num_rows > 0) {
+            $errors['uname'] = 'That username is taken. Try another one.';
+        }
+    }
 
-<body class="sub_page">
+    if (!$errors) {
+        $hash = password_hash($pass, PASSWORD_DEFAULT);
+        $salt = bin2hex(random_bytes(16));
+        $stmt = $conn->prepare('INSERT INTO users (user_name, password, name, vault_salt) VALUES (?, ?, ?, ?)');
+        $stmt->bind_param('ssss', $uname, $hash, $name, $salt);
+        $stmt->execute();
+        $uid = $conn->insert_id;
 
-  <div class="hero_area">
-    <div class="hero_bg_box">
-      <div class="bg_img_box">
-        <img src="images/hero.png" alt="LockHub Hero Image">
-      </div>
+        audit($conn, $uid, 'Account created');
+        start_user_session(['id' => $uid, 'user_name' => $uname, 'name' => $name], derive_vault_key($pass, $salt));
+        flash('success', "Your vault is ready, $name. Add your first password to get started.");
+        redirect('home.php');
+    }
+}
+
+function field_error(array $errors, string $field): string
+{
+    return isset($errors[$field]) ? '<small class="field-error">' . e($errors[$field]) . '</small>' : '';
+}
+
+page_start('Create account', ['variant' => 'auth']);
+?>
+<section class="auth-wrap">
+  <div class="auth-split">
+    <?php include __DIR__ . '/includes/auth_aside.php'; ?>
+    <div class="auth-card">
+      <h1>Create your vault</h1>
+      <p class="muted">It takes less than a minute. Pick a master password you'll remember — it's the only one you'll need.</p>
+
+      <form method="post" class="form-stack" novalidate>
+        <?= csrf_field() ?>
+        <label class="field<?= isset($errors['name']) ? ' has-error' : '' ?>">
+          <span>Your name</span>
+          <input type="text" name="name" value="<?= e($name) ?>" maxlength="100" autocomplete="name" required autofocus>
+          <?= field_error($errors, 'name') ?>
+        </label>
+        <label class="field<?= isset($errors['uname']) ? ' has-error' : '' ?>">
+          <span>Username</span>
+          <input type="text" name="uname" value="<?= e($uname) ?>" maxlength="30" autocomplete="username" required>
+          <?= field_error($errors, 'uname') ?>
+        </label>
+        <label class="field<?= isset($errors['password']) ? ' has-error' : '' ?>">
+          <span>Master password</span>
+          <span class="input-group">
+            <input type="password" name="password" autocomplete="new-password" required data-strength-input>
+            <button type="button" class="icon-btn" data-toggle-visibility aria-label="Show password"><i class="fa fa-eye"></i></button>
+          </span>
+          <span class="strength" data-strength-meter><span class="strength-bar"><i></i></span><span class="strength-label">Use at least 8 characters</span></span>
+          <?= field_error($errors, 'password') ?>
+        </label>
+        <label class="field<?= isset($errors['re_password']) ? ' has-error' : '' ?>">
+          <span>Confirm master password</span>
+          <input type="password" name="re_password" autocomplete="new-password" required>
+          <?= field_error($errors, 're_password') ?>
+        </label>
+        <p class="hint"><i class="fa fa-info-circle"></i> Your master password encrypts your vault. LockHub can't recover it if you forget it.</p>
+        <button class="btn btn-primary btn-block btn-lg" type="submit">Create account <i class="fa fa-arrow-right"></i></button>
+      </form>
+      <p class="auth-switch">Already have an account? <a href="login.php">Log in</a></p>
     </div>
-
-    <!-- header section starts -->
-    <header class="header_section">
-      <div class="container-fluid">
-        <nav class="navbar navbar-expand-lg custom_nav-container">
-          <a class="navbar-brand" href="signup.php">
-            <span>
-              LOCKHUB
-            </span>
-          </a>
-
-          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class=""> </span>
-          </button>
-
-          <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav">
-              <li class="nav-item">
-                <a class="nav-link" href="main.php">Home</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="about.php">About</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="why.php">Why Us</a>
-              </li>
-              <li class="nav-item active">
-                <a class="nav-link" href="signup.php">Sign Up <span class="sr-only">(current)</span></a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="index.php"><i class="fa fa-user" aria-hidden="true"></i> Login</a>
-              </li>
-            </ul>
-          </div>
-        </nav>
-      </div>
-    </header>
-    <!-- end header section -->
   </div>
-
-  <!-- Sign Up Form Section -->
-  <div class="home-page">
-    <form action="signup-check.php" method="post">
-      <h2>SIGN UP</h2>
-
-      <?php if (isset($_GET['error'])) { ?>
-        <p class="error"><?php echo $_GET['error']; ?></p>
-      <?php } ?>
-
-      <?php if (isset($_GET['success'])) { ?>
-        <p class="success"><?php echo $_GET['success']; ?></p>
-      <?php } ?>
-
-      <label>Name</label>
-      <?php if (isset($_GET['name'])) { ?>
-        <input type="text" name="name" placeholder="Name" value="<?php echo $_GET['name']; ?>"><br>
-      <?php } else { ?>
-        <input type="text" name="name" placeholder="Name"><br>
-      <?php } ?>
-
-      <label>User Name</label>
-      <?php if (isset($_GET['uname'])) { ?>
-        <input type="text" name="uname" placeholder="User Name" value="<?php echo $_GET['uname']; ?>"><br>
-      <?php } else { ?>
-        <input type="text" name="uname" placeholder="User Name"><br>
-      <?php } ?>
-
-      <label>Password</label>
-      <input type="password" name="password" placeholder="Password"><br>
-
-      <label>Confirm Password</label>
-      <input type="password" name="re_password" placeholder="Retype Password"><br>
-
-      <button type="submit">Sign Up</button> <!-- Styled Sign Up button -->
-      <a href="index.php" class="ca">Already have an account?</a>
-    </form>
-  </div>
-  <!-- End Sign Up Form Section -->
-
-
-    <!-- Info Section -->
-    <section class="info_section layout_padding2">
-    <div class="container">
-        <div class="row justify-content-center text-center">
-            <div class="col-md-4 info_col">
-                <div class="info_contact">
-                    <h4>Contact Information</h4>
-                    <div class="contact_link_box">
-                        <a href="mailto:support@lockhub.com">
-                            <i class="fa fa-envelope" aria-hidden="true"></i> support@lockhub.com
-                        </a>
-                        <a href="tel:+011234567890">
-                            <i class="fa fa-phone" aria-hidden="true"></i> Call +01 1234567890
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 info_col">
-                <div class="info_detail">
-                    <h4>About Us</h4>
-                    <p>LockHub is a secure password manager that stores your passwords and sensitive data, accessible anytime, anywhere.</p>
-                </div>
-            </div>
-            <div class="col-md-4 info_col">
-                <div class="info_link_box">
-                    <h4>Quick Links</h4>
-                    <div class="info_links">
-                        <a href="home.php">Home</a>
-                        <a href="about.php">About</a>
-                        <a href="why.php">Why Us</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </section>
-  <!-- End Info Section -->
-
-  <!-- Footer Section -->
-  <section class="footer_section">
-    <div class="container">
-      <p>&copy; <span id="displayYear"></span> All Rights Reserved By <a href="https://lockhub.com/">LockHub</a></p>
-    </div>
-  </section>
-  <!-- End Footer Section -->
-
-  <script src="js/jquery-3.4.1.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-  <script src="js/bootstrap.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
-  <script src="js/custom.js"></script>
-</body>
-
-</html>
+<?php page_end(['variant' => 'auth']); ?>

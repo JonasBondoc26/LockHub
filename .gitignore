@@ -1,0 +1,10 @@
+# Hosting credentials, never commit
+includes/config.local.php
+
+# Build artifacts and OS files
+*.zip
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
